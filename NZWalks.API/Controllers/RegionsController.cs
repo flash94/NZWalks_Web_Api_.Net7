@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
+using NZWalks.API.Repositories;
+using System.Runtime.InteropServices;
 
 namespace NZWalks.API.Controllers
 {
@@ -12,29 +14,32 @@ namespace NZWalks.API.Controllers
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext dbContext;
+        private readonly IRegionRepository regionRepository;
 
-        public RegionsController(NZWalksDbContext dbContext)
+        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository)
         {
             this.dbContext = dbContext;
+            this.regionRepository = regionRepository;
         }
         // GET ALL REGIONS
         // GET: https://localhost:portnumber - Domain models
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
             // Get data from database - Domain models
-            var regions = dbContext.Regions.ToList();
+            //var regions = dbContext.Regions.ToListAsync();
+            var regionsDomain = await regionRepository.GetAllAsync();
 
             // Map domains models to DTOs
             var regionsDto = new List<RegionDto>();
-            foreach (var region in regions)
+            foreach (var regionDomain in regionsDomain)
             {
                 regionsDto.Add(new RegionDto()
                 {
-                    Id = region.Id,
-                    Name = region.Name,
-                    Code = region.Code,
-                    RegionImageUrl = region.RegionImageUrl,
+                    Id = regionDomain.Id,
+                    Name = regionDomain.Name,
+                    Code = regionDomain.Code,
+                    RegionImageUrl = regionDomain.RegionImageUrl,
                 });
             }
 
@@ -47,11 +52,12 @@ namespace NZWalks.API.Controllers
         // GET: https://localhost:portnumber/api/regions/{id}
         [HttpGet]
         [Route("{id:Guid}")]
-        public IActionResult GetByID([FromRoute] Guid id) 
+        public async Task <IActionResult> GetByID([FromRoute] Guid id) 
         {
             //var region = dbContext.Regions.Find(id);
             // Get Region Domain Model From Database
-            var regionDomain = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            //var regionDomain = dbContext.Regions.FirstOrDefault(x => x.Id == id);
+            var regionDomain = await regionRepository.GetById(id);
             if (regionDomain == null)
             {
                 return NotFound();
@@ -72,7 +78,7 @@ namespace NZWalks.API.Controllers
         // POST to create new region
         //POST: https://localhost:portnumber/api/regions
         [HttpPost]
-        public IActionResult Create([FromBody] AddRegionRequestDto addRegionRequestDto)
+        public async async <IActionResult> Create([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
             //Map or Convert DTO to Domain Model
             var regionDomainmodel = new Region
@@ -83,8 +89,10 @@ namespace NZWalks.API.Controllers
             };
 
             //use domain model to create Region
-            dbContext.Regions.Add(regionDomainmodel);
-            dbContext.SaveChanges();
+
+            //dbContext.Regions.Add(regionDomainmodel);
+            //dbContext.SaveChanges();
+            regionDomainmodel = await regionRepository.CreateAsync(regionDomainmodel);
 
             //Map Domain model back to DTO
             var regionDto = new RegionDto
