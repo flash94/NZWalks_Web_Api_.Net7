@@ -32,6 +32,7 @@ namespace NZWalks.API.Controllers
 
             if (identityResult.Succeeded)
             {
+                
                 //Add roles to this user
                 if(registerRequestDto.Roles != null && registerRequestDto.Roles.Any())
                 {
