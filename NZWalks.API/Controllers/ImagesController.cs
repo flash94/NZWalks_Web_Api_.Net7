@@ -32,7 +32,7 @@ namespace NZWalks.API.Controllers
 
             if(request.File.Length > 10485760)
             {
-                ModelState.AddModelError("file", "File size more than 10mb, please upload a smaller file size")
+                ModelState.AddModelError("file", "File size more than 10mb, please upload a smaller file size");
             }
         }
     }
